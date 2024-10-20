@@ -11,7 +11,7 @@ static uint8_t getTargetAbsoluteDirection(uint8_t target);
 static uint8_t getTargetRelativeDirection(uint8_t target);
 static bool isDestination(uint8_t location);
 static bool isEnclosed(uint8_t location);
-Stack st(50);
+Stack st(255);
 
 uint8_t currentCell, targetCell;
 uint8_t leftDir, currentDir, rightDir, nextLeftDir, nextDir, nextRightDir;
@@ -24,30 +24,37 @@ short cellDirectionAddition[4] = { -rows, 1, rows, -1 };
 
 void treamux(){
   if(isDeadEnd(currentCell)){
-
+          log("Dead End");
           PathArray[currentCell].visited = 2;
-          targetRelativeDirection = south;
-          updateDirection(&nextLeftDir,targetRelativeDirection);
-          updateDirection(&nextDir, targetRelativeDirection);
-          updateDirection(&nextRightDir, targetRelativeDirection);
+          targetCell = getNeighbourLocation(currentCell,(currentDir+2)%4);
+          log("target cell: "+String(targetCell));
+          getTarget();
 
-          distanceFromTarget = 1;
+          
+          
 
   }
   else if(isJunction(currentCell)){
         if(PathArray[currentCell].visited == 0){
+          log("Junction New");
           st.push(currentDir);
+          log("Pushed: "+String(currentDir));
+         
           PathArray[currentCell].visited = 1;
           for (uint8_t i = 0; i < 4; i++) {
-            if (!wallExists(currentCell, i)) {
-              readingCellLoc = getNeighbourLocation(currentCell, i);
+            if (!wallExists(currentCell, (i + currentDir) % 4)) {
+              readingCellLoc = getNeighbourLocation(currentCell, (i + currentDir) % 4);
+              log("Reading Cell Location: " + String(readingCellLoc));
               if (isUnvisited(readingCellLoc)) {
+                log("is unvisited");
                 targetCell = readingCellLoc;
                 break;
               }
             }
           }
+          log("target cell: "+String(targetCell));
           getTarget();
+          log("relative dir: "+String(targetRelativeDirection));
 
         }
         // else if(PathArray[currentCell].visited == 1 and PathArray[getNeighbourLocation(currentCell,(currentDir+2)%4)].visited == 1){
@@ -60,10 +67,12 @@ void treamux(){
 
         // }
         else{
+          log("Junction visited");
+
           uint8_t minVisitedValue = 255; 
           for(uint8_t i = 0; i < 4; i++) {
-              if(!wallExists(currentCell, i)) {
-                  uint8_t neighborCell = getNeighbourLocation(currentCell, i);
+              if(!wallExists(currentCell,(i+currentDir)%4)) {
+                  uint8_t neighborCell = getNeighbourLocation(currentCell,(i+currentDir)%4);
                   if(PathArray[neighborCell].visited < minVisitedValue) {
                       minVisitedValue = PathArray[neighborCell].visited;
                       targetCell = neighborCell;
@@ -74,31 +83,41 @@ void treamux(){
           
           if(minVisitedValue == 1){
             PathArray[currentCell].visited = 2;
-            int temp = st.top;
+            int temp = *st.peek();
+            log("temp: "+String(temp));
             st.pop();
             targetCell = getNeighbourLocation(currentCell,(temp+2)%4);
           }
+          log("target cell: "+String(targetCell));
           getTarget();
           }
 
         }
   else{
+        log("Normal Cell");
+
       PathArray[currentCell].visited++;
       for(uint8_t i = 0; i < 4; i++) {
-          if(!wallExists(currentCell, i)) {
-              uint8_t neighborCell = getNeighbourLocation(currentCell, i);
+          if(!wallExists(currentCell, (i+currentDir)%4)) {
+              
+              uint8_t neighborCell = getNeighbourLocation(currentCell, (i+currentDir)%4);
+              log("Neighbor Cell: "+ String(neighborCell) + " " + String(PathArray[neighborCell].visited));
               if(PathArray[neighborCell].visited < PathArray[currentCell].visited) {
                   targetCell = neighborCell;
                   break;
               }
               else if(PathArray[neighborCell].visited >= PathArray[currentCell].visited){
-                  PathArray[currentCell].visited++;
+                  
                   targetCell = getNeighbourLocation(currentCell, (currentDir+2)%4);
+                  if(i==3){
+                    PathArray[currentCell].visited++;
+                  }
 
               }
 
           }
       }
+      log("target cell: "+String(targetCell));
       getTarget();
     }
     
@@ -160,34 +179,38 @@ void goToTargetCell() {
 
 
 void updateWalls() {
-
+  PathArray[currentCell].neighbours = 0;
   if (wallLeft()) {
     markWall(currentCell, leftDir);
     if (isNeighbourValid(currentCell, leftDir)) {
       markWall(getNeighbourLocation(currentCell, leftDir), (leftDir + 2) % 4);
     }
+    // log("Wall Left");
   }
   if (wallFront()) {
     markWall(currentCell, currentDir);
     if (isNeighbourValid(currentCell, currentDir)) {
       markWall(getNeighbourLocation(currentCell, currentDir), (currentDir + 2) % 4);
     }
+    // log("Wall Front");
   }
   if (wallRight()) {
     markWall(currentCell, rightDir);
     if (isNeighbourValid(currentCell, rightDir)) {
       markWall(getNeighbourLocation(currentCell, rightDir), (rightDir + 2) % 4);
     }
+    // log("Wall Right");
   }
+  log("Walls Updated "+String(PathArray[currentCell].neighbours));
 }
 
 bool isDeadEnd(uint8_t location) {
-  uint8_t count = 0;
+  uint8_t count1 = 0;
   for (uint8_t i = 0; i < 4; i++) {
     if(i==(currentDir+2)%4) continue;
-    if (wallExists(location, i)) count++;
+    if (wallExists(location, i)) count1++;
   }
-  return count == 3;
+  return count1 == 3;
 }
 
 bool isJunction(uint8_t location) {
@@ -195,6 +218,7 @@ bool isJunction(uint8_t location) {
   for (uint8_t i = 0; i < 4; i++) {
     if (wallExists(location, i)) count++;
   }
+  log("Count: "+String(count));
   return count < 2 ;
 }
 
