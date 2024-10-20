@@ -135,3 +135,11 @@ int getInteger(String command) {
     String response = communicate(command);
     return response.toInt();
 }
+
+void stop() {
+    if (getAck("stop")) {
+        log("Robot stopped successfully.");
+    } else {
+        log("Failed to stop the robot.");
+    }
+}

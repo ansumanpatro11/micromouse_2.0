@@ -14,7 +14,9 @@
 #define rightSensor 3
 
 
-#define absolute(number) (((number) > 0)? (number) : (-(number)))
+#define absolute(number) (((number) > 0) ? (number) : -(number))
+
+
 #define minimum(num1, num2) (((num1) < (num2))? (num1) : (num2))
 
 struct cell {

@@ -10,7 +10,7 @@ int moveForward(int blocks);
 #define delineariseCol(location) (location % cols)
 
 // Wall macros
-#define distance(loc1, loc2) (absolute(delineariseRow(loc1) - delineariseRow(loc2)) + absolute(delineariseCol(loc1) - delineariseCol(loc2)))
+#define cellDistance(loc1, loc2) (absolute(delineariseRow(loc1) - delineariseRow(loc2)) + absolute(delineariseCol(loc1) - delineariseCol(loc2)))
 #define wallExists(location, direction) (PathArray[location].neighbours & (1 << direction))
 #define markWall(location, direction) (PathArray[location].neighbours |= 1 << direction)
 
@@ -29,5 +29,9 @@ void updateTargetCell();
 void goToTargetCell();
 void updateWalls();
 void initialise();
+bool isJunction(uint8_t location);
+bool isUnvisited(uint8_t location);
+bool isDeadEnd(uint8_t location);
+void getTarget();
 
 #endif

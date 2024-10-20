@@ -1,8 +1,8 @@
 #include "globals.h"
 #include "treamux.h"
 #include "Api.h"
-#include <ArduinoSTL.h>  // IMPORTANT: you must include this line to use the ArduinoSTL library
-#include <stack> 
+#include "src/Stack/Stack.h"
+
 
 
 
@@ -11,7 +11,7 @@ static uint8_t getTargetAbsoluteDirection(uint8_t target);
 static uint8_t getTargetRelativeDirection(uint8_t target);
 static bool isDestination(uint8_t location);
 static bool isEnclosed(uint8_t location);
-std::stack <uint8_t> st;
+Stack st(50);
 
 uint8_t currentCell, targetCell;
 uint8_t leftDir, currentDir, rightDir, nextLeftDir, nextDir, nextRightDir;
@@ -74,7 +74,7 @@ void treamux(){
           
           if(minVisitedValue == 1){
             PathArray[currentCell].visited = 2;
-            int temp = st.top();
+            int temp = st.top;
             st.pop();
             targetCell = getNeighbourLocation(currentCell,(temp+2)%4);
           }
@@ -222,7 +222,7 @@ static uint8_t   getTargetRelativeDirection(uint8_t target) {
 }
 
 static bool isDestination(uint8_t location) {
-  return PathArray[location].flood == 0;
+  return currentCell==targetCellsGoal;
 }
 
 static bool isEnclosed(uint8_t location) {

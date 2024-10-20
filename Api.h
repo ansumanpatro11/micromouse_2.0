@@ -14,6 +14,8 @@ bool wallFront();
 
 bool wallRight();
 
+void stop();
+
 bool wallLeft();
 
 bool moveForward();
